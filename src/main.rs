@@ -17,6 +17,7 @@ struct Metrics {
     decisions: u64,
     fills: u64,
     pnl: f64,
+    
     last_price: f64,
     // latency from trade timestamp to decision time (ms)
     lat_hist: Histogram<u64>,
@@ -112,6 +113,7 @@ async fn main() -> anyhow::Result<()> {
                 Ok(Message::Binary(_)) => {}
                 Ok(Message::Ping(_)) => {}
                 Ok(Message::Pong(_)) => {}
+                Ok(Message::Frame(_)) => {}
                 Ok(Message::Close(_)) => break,
                 Err(e) => {
                     eprintln!("WS error: {e}");
@@ -158,7 +160,7 @@ async fn main() -> anyhow::Result<()> {
 
         if let Some(side) = decision {
             // latency: now - trade time
-            let now_ms = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64;
+            let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64;
             let latency = now_ms.saturating_sub(tr.T);
             {
                 let mut m = METRICS.lock().unwrap();
